@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ProjectsByJackHe/Sudoku-Solver.git"
+    "url": "git+https://github.com/MayKali/sudoku-solver.git"
   },
   "keywords": [
     "sudoku",
@@ -18,7 +18,7 @@
   "author": "Jack He",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ProjectsByJackHe/Sudoku-Solver/issues"
+    "url": "https://maykali.github.io/sudoku-solver/issues"
   },
-  "homepage": "https://github.com/ProjectsByJackHe/Sudoku-Solver#readme"
+  "homepage": "https://github.com/MayKali/sudoku-solver/blob/master/README.me"
 }
