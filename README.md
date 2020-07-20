@@ -3,4 +3,4 @@ A web-based sudoku solver using javascript
 
 ## Finished version 
 
-*[Sudoku-Solver](https://maykali.github.io/sudoku-solver/)
+[Sudoku-Solver](https://maykali.github.io/sudoku-solver/)
