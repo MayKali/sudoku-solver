@@ -1,6 +1,5 @@
 # sudoku-solver - Work in progress
 A web-based sudoku solver using javascript 
 
-## Finished version 
+Finished the algorithm code, just working on finalizing everything and integrating it with html
 
-[Sudoku-Solver](https://maykali.github.io/sudoku-solver/)
