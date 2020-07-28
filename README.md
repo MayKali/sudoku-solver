@@ -2,6 +2,6 @@
 
 A web-based sudoku solver that uses generative recursion and backtracking search. 
 
-# Try it here!
+* [# Try it here!](https://maykali.github.io/sudoku-solver/
+)
 
-https://maykali.github.io/sudoku-solver/
