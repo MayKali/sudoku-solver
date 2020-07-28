@@ -19,265 +19,462 @@
 	other possiblities. 
 */
 
-//	null value is used to represent an empty space on the board 
 
-const b = null 
+var Sudoku = ( function ( $ ){
+	var _instance, _game,
 
-//	2D js array to represent a sudoku board
+		defaultConfig = {
 
-const board = [
-	[b, b, b, b, b, b, b, b, b],
-	[b, b, b, b, b, b, b, b, b],
-	[b, b, b, b, b, b, b, b, b],
-	[b, b, b, b, b, b, b, b, b],
-	[b, b, b, b, b, b, b, b, b],
-	[b, b, b, b, b, b, b, b, b],
-	[b, b, b, b, b, b, b, b, b],
-	[b, b, b, b, b, b, b, b, b],
-	[b, b, b, b, b, b, b, b, b]
-]
+			'validate_on_insert': true,
 
-//	Possible Test Boards
-const brd1 = [
-	[1, b, b, b, b, b, b, b, 3],
-	[b, b, b, b, b, b, b, b, b],
-	[b, b, b, b, 8, b, b, b, b],
-	[b, b, b, b, b, b, b, b, b],
-	[b, b, b, b, b, b, b, b, b],
-	[b, b, b, b, b, b, b, b, b],
-	[b, b, b, b, b, b, b, b, b],
-	[b, 3, b, b, b, b, b, b, b],
-	[b, b, b, b, b, b, b, b, 9]
-]
+			'show_solver_timer': true,
 
-// Impossible to solve, contradiction
-const brd2 = [
-	[1, 2, 3, 4, 5, 6, 7, 8, b],
-	[b, b, b, b, b, b, b, b, 2],
-	[b, b, b, b, b, b, b, b, 3],
-	[b, b, b, b, b, b, b, b, 4],
-	[b, b, b, b, b, b, b, b, 5],
-	[b, b, b, b, b, b, b, b, 6],
-	[b, b, b, b, b, b, b, b, 7],
-	[b, b, b, b, b, b, b, b, 8],
-	[b, b, b, b, b, b, b, b, 9]
-]
+			'show_recursion_counter': true,
+
+			'solver_shuffle_numbers': true
+		},
+		paused = false,
+		counter = 0;
 
 
-const brd3 = [
-	[1, 2, 3, 4, 5, 6, 7, 8, b],
-	[b, b, b, b, b, b, b, b, 1],
-	[b, b, b, b, b, b, b, b, 2],
-	[b, b, b, b, b, b, b, b, 3],
-	[b, b, b, b, b, b, b, b, 4],
-	[b, b, b, b, b, b, b, b, 5],
-	[b, b, b, b, b, b, b, b, 6],
-	[b, b, b, b, b, b, b, b, 7],
-	[b, b, b, b, b, b, b, b, 8]
-]
+	function init( config ) {
+		conf = $.extend( {}, defaultConfig, config );
+		_game = new Game( conf );
 
-function initiate() {
-    // null -> null
-    // populate the board with whatever the user inputted
-    var startingBoard = [[]]
-    var j = 0
-    for (var i = 1; i <= 81; i++){
-        const val = document.getElementById(String(i)).value
-        if (val == ""){
-            startingBoard[j].push(null)
-        }
-        else { 
-            startingBoard[j].push(Number(val))
-        }
-        if (i % 9 == 0 && i < 81){
-            startingBoard.push([])
-            j++
-        }
-    }
-    // console.log(startingBoard)
-    const inputValid = validBoard(startingBoard)
-    if (!inputValid){
-        inputIsInvalid()
-    }
-    else{
-        const answer = solve(startingBoard)
-        updateBoard(answer, inputValid)
-    }
-}
+		/** Public methods **/
+		return {
+			/**
+			 * Return a visual representation of the board
+			 * @returns {jQuery} Game table
+			 */
+			getGameBoard: function() {
+				return _game.buildGUI();
+			},
 
+			/**
+			 * Reset the game board.
+			 */
+			reset: function() {
+				_game.resetGame();
+			},
 
-function solve(board) {
+			/**
+			 * Call for a validation of the game board.
+			 * @returns {Boolean} Whether the board is valid
+			 */
+			validate: function() {
+				var isValid;
 
-// Checks whether or not the board is solved.
+				isValid = _game.validateMatrix();
+				$( '.sudoku-Grid' ).toggleClass( 'valid-matrix', isValid );
+			},
 
-	if (solved(board)) {
-		return board
-	} else {
-		const possiblities = nextBoards(boards)
-//	Gets rid of the invalid boards and implements the back-tracking search
-		const validBoards = keepOnlyValid(possibilities)
-		return searchForSolution(validBoards)
-	}
-}
-
-
-function searchForSolution(boards) {
-
-//	Checks whether there are any valid boards, if there aren't then a solution does not exist
-	if (boards.length < 1) {
-		return false
-	} else {
-		//	Back-tracking search for solution
-		var first = boards.shift()
-		const tryPath = solve(first)
-
-		if(tryPath != false) {
-			return tryPath
-		} else {
-			return searchForSolution(boards)
-		}
-	}
-}
-
-//	Checks whether a board is solved or not
-function solved(board) {
-//	A board is solved when all the slots in a given board return a non-null value. 
-	for (var i = 0; i < 9; i++) {
-		for (var j = 0; j < 9 ; j++) {
-			if (board[i][j] == null) {
-				return null
-			}
-		}
-	}
-	return true
-}
-
-
-// Generate the tree of possiblities from a sudoku board
-function nextBoards(board){
-	// Store all the possible sudoku boards
-	var res = []
-	// Returns a coordinate on the 2D plane 
-	const firstEmpty = findEmptySquare(board) // <-- (y,x)
-	// Generates a list of possibilities 
-	if (firstEmpty != undefined){
-		const y = firstEmpty[0]
-		const x = firstEmpty[1]
-
-		for (var i = 1; i <= 9; i++) {
-	// Arrays are treated like objects, when an array is assigned to a variable, what is stored
-	// is a reference to the array, if I change stuff in the variable, the origin is also changed
-			var newBoard = [...board]
-			var row = [...newBoard[y]]
-			row[x] = i
-			newBoard[y] = row
-			res.push(newBoard)
-		}
-	}
-	return res
-}
-
-
-function findEmptySquare(board) {
-	// board -> [Int, Int]
-	for (var i = 0; i < 9 ; i++) {
-		for (var j = 0; j < 9 ; j++) {
-			if (board[i][j] == null) {
-				return [i, j]
-			}
-		}
-	}
-}
-
-function keepOnlyValid(boards) {
-//	If the valid method returns true, then the board will be kept, else it will be discarded
-	return boards.filter((b => validBoards(b)))
-}
-
-// Checks that the rows, columns and boxes do not contain any duplicate numbers 
-function validBoard(board) {
-	return rowGood(board) && columnGood(board) && boxesGood(board)
-}
-
-function rowsGood(board) {
-	for (var i = 0; i < 9; i++) {
-		var cur = []
-		for (var j = 0; j < 9; j++) {
-			if (cur.includes(board[i][j])) {
-				return false
-			} else if (board[i][j] != null) {
-				cur.push(board[i][j])
-			}
-		}
-	}
-	return true
-}
-
-function columnGood(board) {
-		for (var i = 0; i < 9; i++) {
-		var cur = []
-		for (var j = 0; j < 9; j++) {
-			if (cur.includes(board[j][ii])) {
-				return false
-			} else if (board[j][i] != null) {
-				cur.push(board[j][i])
-			}
-		}
-	}
-	return true
-}
-
-
-function boxesGood(board){
-	const boxCoordinates = [
-	[0,0], [0,1], [0,2],
-	[1,0], [1,1], [1,2],
-	[2,0], [2,1], [2,2]
-	]
-
-	for (var y = 0; y < 9; y += 3) {
-		for (var x = 0; x < 9; x += 3) {
-			var cur = []
-			for (var i = 0; i < 9; i++) {
-				var coordinates = [...boxCoordinates[i]]
-				coordinates[0] += y
-				coordinates[1] += x
-				if (cur.includes(board[coordinates[0]][coordinates[1]])) {
-					return false
-				} else if (board[coordinates[0]][coordinates[1]] != null) {
-					cur.push((board[coordinates[0]][coordinates[1]]))
+			/**
+			 * Call for the solver routine to solve the current
+			 * board.
+			 */
+			solve: function() {
+				var isValid, starttime, endtime, elapsed;
+				// Make sure the board is valid first
+				if ( !_game.validateMatrix() ) {
+					return false;
 				}
-	return true
-}
+				// Reset counters
+				_game.recursionCounter = 0;
+				_game.backtrackCounter = 0;
 
-function updateBoard(board) {
-    // THIS FUNCTION WORKS.
-    // Board -> null
-    // update the DOM with the answer
-    if (board == false){
-        for (i = 1; i <= 9; i++){
-            document.getElementById("row " + String(i)).innerHTML = "NO SOLUTION EXISTS TO THE GIVEN BOARD"
-        }
-    }
-    else{
-        for (var i = 1; i <= 9; i++){
-            var row = ""
-            for (var j = 0; j < 9; j++){
-                if (row == ""){
-                    row = row + String(board[i - 1][j])
-                }
-                else {
-                    row = row + "\xa0\xa0\xa0\xa0\xa0\xa0\xa0" + String(board[i - 1][j])
-                }
-            }
-            document.getElementById("row " + String(i)).innerHTML = row
-        }
-    }
-}
+				// Check start time
+				starttime = Date.now();
 
-function inputIsInvalid(){
-    // starting board is invalid or puzzle is insolvable
-    for (i = 1; i <= 9; i++){
-        document.getElementById("row " + String(i)).innerHTML = "THE GIVEN BOARD IS INVALID"
-    }
-}
+				// Solve the game
+				isValid = _game.solveGame( 0, 0 );
+
+				// Get solving end time
+				endtime = Date.now();
+
+				// Visual indication of whether the game was solved
+				$( '.sudoku-Grid' ).toggleClass( 'valid-matrix', isValid );
+				if ( isValid ) {
+					$( '.valid-matrix input' ).attr( 'disabled', 'disabled' );
+				}
+
+				// Display elapsed time
+				if ( _game.config.show_solver_timer ) {
+					elapsed = endtime - starttime;
+					window.console.log( 'Solver elapsed time: ' + elapsed + 'ms' );
+				}
+				// Display number of reursions and backtracks
+				if ( _game.config.show_recursion_counter ) {
+					window.console.log( 'Solver recursions: ' + _game.recursionCounter );
+					window.console.log( 'Solver backtracks: ' + _game.backtrackCounter );
+				}
+			}
+		};
+	}
+
+
+	function Game( config ) {
+		this.config = config;
+
+		// Initialize game parameters
+		this.recursionCounter = 0;
+		this.$cellMatrix = {};
+		this.matrix = {};
+		this.validation = {};
+
+		this.resetValidationMatrices();
+		return this;
+	}
+
+	Game.prototype = {
+		/**
+		 * Build the game GUI
+		 * @returns {jQuery} Table containing 9x9 input matrix
+		 */
+		buildGUI: function() {
+			var $td, $tr,
+				$table = $( '<table>' )
+					.addClass( 'sudoku-Grid' );
+
+			for ( var i = 0; i < 9; i++ ) {
+				$tr = $( '<tr>' );
+				this.$cellMatrix[i] = {};
+
+				for ( var j = 0; j < 9; j++ ) {
+					// Build the input
+					this.$cellMatrix[i][j] = $( '<input>' )
+						.attr( 'maxlength', 1 )
+						.data( 'row', i )
+						.data( 'col', j )
+						.on( 'keyup', $.proxy( this.onKeyUp, this ) );
+
+					$td = $( '<td>' ).append( this.$cellMatrix[i][j] );
+					// Calculate section ID
+					sectIDi = Math.floor( i / 3 );
+					sectIDj = Math.floor( j / 3 );
+					// Set the design for different sections
+					if ( ( sectIDi + sectIDj ) % 2 === 0 ) {
+						$td.addClass( 'sudoku-section-one' );
+					} else {
+						$td.addClass( 'sudoku-section-two' );
+					}
+					// Build the row
+					$tr.append( $td );
+				}
+				// Append to table
+				$table.append( $tr );
+			}
+			// Return the GUI table
+			return $table;
+		},
+
+		/**
+		 * Handle keyup events.
+		 *
+		 * @param {jQuery.event} e Keyup event
+		 */
+		onKeyUp: function( e ) {
+			var sectRow, sectCol, secIndex,
+				starttime, endtime, elapsed,
+				isValid = true,
+				val = $.trim( $( e.currentTarget ).val() ),
+				row = $( e.currentTarget ).data( 'row' ),
+				col = $( e.currentTarget ).data( 'col' );
+
+			// Reset board validation class
+			$( '.sudoku-Grid' ).removeClass( 'valid-matrix' );
+
+			// Validate, but only if validate_on_insert is set to true
+			if ( this.config.validate_on_insert ) {
+				isValid = this.validateNumber( val, row, col, this.matrix.row[row][col] );
+				// Indicate error
+				$( e.currentTarget ).toggleClass( 'sudoku-input-error', !isValid );
+			}
+
+			// Calculate section identifiers
+			sectRow = Math.floor( row / 3 );
+			sectCol = Math.floor( col / 3 );
+			secIndex = ( row % 3 ) * 3 + ( col % 3 );
+
+			// Cache value in matrix
+			this.matrix.row[row][col] = val;
+			this.matrix.col[col][row] = val;
+			this.matrix.sect[sectRow][sectCol][secIndex] = val;
+		},
+
+		/**
+		 * Reset the board and the game parameters
+		 */
+		resetGame: function() {
+			this.resetValidationMatrices();
+			for ( var row = 0; row < 9; row++ ) {
+				for ( var col = 0; col < 9; col++ ) {
+					// Reset GUI inputs
+					this.$cellMatrix[row][col].val( '' );
+				}
+			}
+
+			$( '.sudoku-Grid input' ).removeAttr( 'disabled' );
+			$( '.sudoku-Grid' ).removeClass( 'valid-matrix' );
+		},
+
+		/**
+		 * Reset and rebuild the validation matrices
+		 */
+		resetValidationMatrices: function() {
+			this.matrix = { 'row': {}, 'col': {}, 'sect': {} };
+			this.validation = { 'row': {}, 'col': {}, 'sect': {} };
+
+			// Build the row/col matrix and validation arrays
+			for ( var i = 0; i < 9; i++ ) {
+				this.matrix.row[i] = [ '', '', '', '', '', '', '', '', '' ];
+				this.matrix.col[i] = [ '', '', '', '', '', '', '', '', '' ];
+				this.validation.row[i] = [];
+				this.validation.col[i] = [];
+			}
+
+			// Build the section matrix and validation arrays
+			for ( var row = 0; row < 3; row++ ) {
+				this.matrix.sect[row] = [];
+				this.validation.sect[row] = {};
+				for ( var col = 0; col < 3; col++ ) {
+					this.matrix.sect[row][col] = [ '', '', '', '', '', '', '', '', '' ];
+					this.validation.sect[row][col] = [];
+				}
+			}
+		},
+
+
+		validateNumber: function( num, rowID, colID, oldNum ) {
+			var isValid = true,
+				// Section
+				sectRow = Math.floor( rowID / 3 ),
+				sectCol = Math.floor( colID / 3 );
+
+			// This is given as the matrix component (old value in
+			// case of change to the input) in the case of on-insert
+			// validation. However, in the solver, validating the
+			// old number is unnecessary.
+			oldNum = oldNum || '';
+
+			// Remove oldNum from the validation matrices,
+			// if it exists in them.
+			if ( this.validation.row[rowID].indexOf( oldNum ) > -1 ) {
+				this.validation.row[rowID].splice(
+					this.validation.row[rowID].indexOf( oldNum ), 1
+				);
+			}
+			if ( this.validation.col[colID].indexOf( oldNum ) > -1 ) {
+				this.validation.col[colID].splice(
+					this.validation.col[colID].indexOf( oldNum ), 1
+				);
+			}
+			if ( this.validation.sect[sectRow][sectCol].indexOf( oldNum ) > -1 ) {
+				this.validation.sect[sectRow][sectCol].splice(
+					this.validation.sect[sectRow][sectCol].indexOf( oldNum ), 1
+				);
+			}
+			// Skip if empty value
+
+			if ( num !== '' ) {
+
+
+				// Validate value
+				if (
+					// Make sure value is numeric
+					$.isNumeric( num ) &&
+					// Make sure value is within range
+					Number( num ) > 0 &&
+					Number( num ) <= 9
+				) {
+					// Check if it already exists in validation array
+					if (
+						$.inArray( num, this.validation.row[rowID] ) > -1 ||
+						$.inArray( num, this.validation.col[colID] ) > -1 ||
+						$.inArray( num, this.validation.sect[sectRow][sectCol] ) > -1
+					) {
+						isValid = false;
+					} else {
+						isValid = true;
+					}
+				}
+
+				this.validation.row[rowID].push( num );
+				this.validation.col[colID].push( num );
+				this.validation.sect[sectRow][sectCol].push( num );
+			}
+
+			return isValid;
+		},
+
+
+		validateMatrix: function() {
+			var isValid, val, $element,
+				hasError = false;
+
+			// Go over entire board, and compare to the cached
+			// validation arrays
+			for ( var row = 0; row < 9; row++ ) {
+				for ( var col = 0; col < 9; col++ ) {
+					val = this.matrix.row[row][col];
+					// Validate the value
+					isValid = this.validateNumber( val, row, col, val );
+					this.$cellMatrix[row][col].toggleClass( 'sudoku-input-error', !isValid );
+					if ( !isValid ) {
+						hasError = true;
+					}
+				}
+			}
+			return !hasError;
+		},
+
+
+		solveGame: function( row, col ) {
+			var cval, sqRow, sqCol, $nextSquare, legalValues,
+				sectRow, sectCol, secIndex, gameResult;
+
+			this.recursionCounter++;
+			$nextSquare = this.findClosestEmptySquare( row, col );
+			if ( !$nextSquare ) {
+				// End of board
+				return true;
+			} else {
+				sqRow = $nextSquare.data( 'row' );
+				sqCol = $nextSquare.data( 'col' );
+				legalValues = this.findLegalValuesForSquare( sqRow, sqCol );
+
+				// Find the segment id
+				sectRow = Math.floor( sqRow / 3 );
+				sectCol = Math.floor( sqCol / 3 );
+				secIndex = ( sqRow % 3 ) * 3 + ( sqCol % 3 );
+
+				// Try out legal values for this cell
+				for ( var i = 0; i < legalValues.length; i++ ) {
+					cval = legalValues[i];
+					// Update value in input
+					$nextSquare.val( cval );
+					// Update in matrices
+					this.matrix.row[sqRow][sqCol] = cval;
+					this.matrix.col[sqCol][sqRow] = cval;
+					this.matrix.sect[sectRow][sectCol][secIndex] = cval;
+
+					// Recursively keep trying
+					if ( this.solveGame( sqRow, sqCol ) ) {
+						return true;
+					} else {
+						// There was a problem, we should backtrack
+						this.backtrackCounter++;
+
+						// Remove value from input
+						this.$cellMatrix[sqRow][sqCol].val( '' );
+						// Remove value from matrices
+						this.matrix.row[sqRow][sqCol] = '';
+						this.matrix.col[sqCol][sqRow] = '';
+						this.matrix.sect[sectRow][sectCol][secIndex] = '';
+					}
+				}
+				// If there was no success with any of the legal
+				// numbers, call backtrack recursively backwards
+				return false;
+			}
+		},
+
+
+		findClosestEmptySquare: function( row, col ) {
+			var walkingRow, walkingCol, found = false;
+			for ( var i = ( col + 9*row ); i < 81; i++ ) {
+				walkingRow = Math.floor( i / 9 );
+				walkingCol = i % 9;
+				if ( this.matrix.row[walkingRow][walkingCol] === '' ) {
+					found = true;
+					return this.$cellMatrix[walkingRow][walkingCol];
+				}
+			}
+		},
+
+
+		findLegalValuesForSquare: function( row, col ) {
+			var legalVals, legalNums, val, i,
+				sectRow = Math.floor( row / 3 ),
+				sectCol = Math.floor( col / 3 );
+
+			legalNums = [ 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+			// Check existing numbers in col
+			for ( i = 0; i < 9; i++ ) {
+				val = Number( this.matrix.col[col][i] );
+				if ( val > 0 ) {
+					// Remove from array
+					if ( legalNums.indexOf( val ) > -1 ) {
+						legalNums.splice( legalNums.indexOf( val ), 1 );
+					}
+				}
+			}
+
+			// Check existing numbers in row
+			for ( i = 0; i < 9; i++ ) {
+				val = Number( this.matrix.row[row][i] );
+				if ( val > 0 ) {
+					// Remove from array
+					if ( legalNums.indexOf( val ) > -1 ) {
+						legalNums.splice( legalNums.indexOf( val ), 1 );
+					}
+				}
+			}
+
+			// Check existing numbers in section
+			sectRow = Math.floor( row / 3 );
+			sectCol = Math.floor( col / 3 );
+			for ( i = 0; i < 9; i++ ) {
+				val = Number( this.matrix.sect[sectRow][sectCol][i] );
+				if ( val > 0 ) {
+					// Remove from array
+					if ( legalNums.indexOf( val ) > -1 ) {
+						legalNums.splice( legalNums.indexOf( val ), 1 );
+					}
+				}
+			}
+
+			if ( this.config.solver_shuffle_numbers ) {
+
+				for ( i = legalNums.length - 1; i > 0; i-- ) {
+					var rand = getRandomInt( 0, i );
+					temp = legalNums[i];
+					legalNums[i] = legalNums[rand];
+					legalNums[rand] = temp;
+				}
+			}
+
+			return legalNums;
+		},
+	};
+	
+	function getRandomInt(min, max) {
+		return Math.floor( Math.random() * ( max + 1 ) ) + min;
+	}
+
+	return {
+
+		getInstance: function( config ) {
+			if ( !_instance ) {
+				_instance = init( config );
+			}
+			return _instance;
+		}
+	};
+} )( jQuery );
+
+
+$( document ).ready( function() {
+			var game = Sudoku.getInstance();
+			$( '#Grid').append( game.getGameBoard() );
+			$( '#solve').click( function() {
+				game.solve();
+			} );
+			$( '#validate').click( function() {
+				game.validate();
+			} );
+			$( '#reset').click( function() {
+				game.reset();
+			} );
+		} );
