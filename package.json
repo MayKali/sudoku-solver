@@ -1,0 +1,19 @@
+{
+  "name": "sudoku-solver",
+  "version": "1.0.0",
+  "description": "App that uses generative recursion and backtracking to solve sudoku puzzles",
+  "main": "index.html",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MayKali/sudoku-solver.git"
+  },
+  "keywords": [
+    "sudoku",
+    "generative recursion",
+    "backtracking"
+  ],
+  "author": "Mohamad Abbas",
+  "license": "GPL-3.0 License",
