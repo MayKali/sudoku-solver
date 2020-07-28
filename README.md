@@ -1,5 +1,7 @@
-# sudoku-solver - Work in progress
-A web-based sudoku solver using javascript 
+# Sudoku-Solver
 
-### Finished the solver code, just working on finalizing everything and integrating it with html
+A web-based sudoku solver that uses generative recursion and backtracking search. 
 
+# Try it here!
+
+https://maykali.github.io/sudoku-solver/
