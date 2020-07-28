@@ -1,0 +1,71 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+header { 
+
+  background-color: #282c34;
+  font-family: 'Roboto', sans-serif;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  justify-content: center;
+  font-size: calc(20px + 2vmin);
+  color: white;
+  margin-bottom: 2rem;
+  
+}
+button, h1 {
+  
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.sudoku_options {
+  width: 50%;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sudoku_options button {
+  font-size: 26px;
+  margin: 10px;
+  padding: 5px;
+}
+
+.sudoku-Grid {
+  border: 6px solid #666;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sudoku-Grid td {
+  margin: 0;
+}
+.sudoku-Grid input {
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  font-size: 20px;
+  color: #619E73 ;
+  padding: 0;
+  border: 1px #ccc solid;
+  background: transparent;
+}
+
+.sudoku-Grid .sudoku-input-error {
+  background: #ffc9d7;
+}
+.sudoku-Grid.valid-matrix {
+  border: 5px solid #7edb37;
+}
+
+
+.sudoku-section-one {
+  background: #ccc;
+}
+
