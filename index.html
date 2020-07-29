@@ -9,6 +9,19 @@
       <link href="css/style.css" rel="stylesheet" type="text/css">
    </head>
    <body>
+      <script type="text/javascript">
+		$( document ).ready( function() {
+			var game = Sudoku.getInstance();
+			$( '#Grid').append( game.getGameBoard() );
+
+			$( '#solve').click( function() {
+				game.solve();
+			} );
+			$( '#reset').click( function() {
+				game.reset();
+			} );
+		} );
+		</script>
       <header>
          <h1>Sudoku Solver</h1>
          <div id="Grid"></div>
